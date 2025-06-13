@@ -19,12 +19,45 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Install Chrome
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@latest
+      with:
+        chrome-version: stable
+        
+    - name: Install Chrome dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
+        sudo apt-get install -y \
+          libnss3-dev \
+          libatk-bridge2.0-dev \
+          libdrm-dev \
+          libxcomposite-dev \
+          libxdamage-dev \
+          libxrandr-dev \
+          libgbm-dev \
+          libxss-dev \
+          libasound2-dev
         
-    - name: Install dependencies
+    - name: Install ChromeDriver
+      run: |
+        # Obtenir la version de Chrome
+        CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f3 | cut -d '.' -f1)
+        echo "Chrome version: $CHROME_VERSION"
+        
+        # Télécharger ChromeDriver compatible
+        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}")
+        echo "ChromeDriver version: $CHROMEDRIVER_VERSION"
+        
+        # Télécharger et installer ChromeDriver
+        wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -P /tmp/
+        unzip -o /tmp/chromedriver_linux64.zip -d /tmp/
+        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver
+        sudo chmod +x /usr/local/bin/chromedriver
+        
+        # Vérifier l'installation
+        chromedriver --version
+        
+    - name: Install Python dependencies
       run: |
         cd tests
         pip install -r requirements.txt
@@ -34,14 +67,21 @@ jobs:
         CI: true
       run: |
         cd tests
-        python -m pytest test_selenium.py -v --html=../test-report.html --self-contained-html
+        python -m pytest test_selenium.py -v \
+          --html=../test-report.html \
+          --self-contained-html \
+          --tb=short \
+          -x
         
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: test-report.html
+        path: |
+          test-report.html
+          tests/htmlcov/
+        retention-days: 30
 
   deploy:
     needs: test

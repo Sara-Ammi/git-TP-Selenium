@@ -1,5 +1,7 @@
 import pytest
 import time
+import os
+import glob
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,7 +10,6 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-import os
 
 class TestCalculator:
     @pytest.fixture(scope="class")
@@ -23,15 +24,41 @@ class TestCalculator:
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--window-size=1920,1080')
+            chrome_options.add_argument('--disable-extensions')
+            chrome_options.add_argument('--disable-dev-shm-usage')
 
         try:
             # Essayer avec webdriver-manager
-            service = Service(ChromeDriverManager().install())
+            chromedriver_path = ChromeDriverManager().install()
+            print(f"ChromeDriver téléchargé à: {chromedriver_path}")
+            
+            # Vérifier si le chemin pointe vers le bon exécutable
+            if 'THIRD_PARTY_NOTICES' in chromedriver_path:
+                # Chercher le vrai chromedriver dans le même répertoire
+                driver_dir = os.path.dirname(chromedriver_path)
+                possible_drivers = glob.glob(os.path.join(driver_dir, '**/chromedriver*'), recursive=True)
+                
+                # Filtrer pour trouver l'exécutable réel
+                for driver_path in possible_drivers:
+                    if os.path.isfile(driver_path) and os.access(driver_path, os.X_OK) and 'THIRD_PARTY' not in driver_path:
+                        chromedriver_path = driver_path
+                        break
+                else:
+                    # Si aucun chromedriver trouvé, essayer le chemin système
+                    raise Exception("ChromeDriver exécutable non trouvé")
+            
+            service = Service(chromedriver_path)
+            
         except Exception as e:
             print(f"Erreur avec webdriver-manager: {e}")
-            # Fallback: essayer avec le chromedriver du PATH
-            service = Service()
-        
+            # Fallback: essayer avec le chromedriver du système
+            try:
+                service = Service()  # Utilise le chromedriver du PATH
+            except Exception as e2:
+                print(f"Erreur avec chromedriver système: {e2}")
+                # Dernier recours: spécifier un chemin commun
+                service = Service('/usr/bin/chromedriver')
+
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.implicitly_wait(10)
         
