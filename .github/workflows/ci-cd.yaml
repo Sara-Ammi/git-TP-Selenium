@@ -9,21 +9,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-        
+
     - name: Setup Chrome
       uses: browser-actions/setup-chrome@latest
       with:
         chrome-version: stable
-        
+
     - name: Install Chrome dependencies
       run: |
         sudo apt-get update
@@ -37,31 +37,12 @@ jobs:
           libgbm-dev \
           libxss-dev \
           libasound2-dev
-        
-    - name: Install ChromeDriver
-      run: |
-        # Obtenir la version de Chrome
-        CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f3 | cut -d '.' -f1)
-        echo "Chrome version: $CHROME_VERSION"
-        
-        # Télécharger ChromeDriver compatible
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}")
-        echo "ChromeDriver version: $CHROMEDRIVER_VERSION"
-        
-        # Télécharger et installer ChromeDriver
-        wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -P /tmp/
-        unzip -o /tmp/chromedriver_linux64.zip -d /tmp/
-        sudo mv /tmp/chromedriver /usr/local/bin/chromedriver
-        sudo chmod +x /usr/local/bin/chromedriver
-        
-        # Vérifier l'installation
-        chromedriver --version
-        
+
     - name: Install Python dependencies
       run: |
         cd tests
         pip install -r requirements.txt
-        
+
     - name: Run Selenium Tests
       env:
         CI: true
@@ -72,7 +53,7 @@ jobs:
           --self-contained-html \
           --tb=short \
           -x
-        
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -87,11 +68,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
