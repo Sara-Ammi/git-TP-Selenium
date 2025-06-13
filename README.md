@@ -103,5 +103,5 @@ J'ajoute  test_decimal_numbers dans `test_selenium.py`
 
 ## 9. Push final
     git add .
-    git commit -m "Complete TP with all tests"
+    git commit -m "last commit"
     git push origin develop
