@@ -49,125 +49,41 @@ python -m pytest test_selenium.py -v
 **.github/workflows/ci-cd.yml** - Je copie le workflow donné
 
 Je push sur une branche `develop` :
-git checkout -b develop
-git add .
-git commit -m "Initial setup"
-git push origin develop
+    git checkout -b develop
+    git add .
+    git commit -m "Initial setup"
+    git push origin develop
 
 
-Je crée une Pull Request vers `main` → Tests se lancent automatiquement
-
-**Résultat GitHub Actions :** ✅ All checks passed
+**Résultat GitHub Actions :**  All checks passed (Successful in 55s)
 
 ## 5. Configuration qualité
 
-**tests/pytest.ini** :
-```ini
-[tool:pytest]
-testpaths = .
-addopts = -v --html=report.html --self-contained-html --cov=../src --cov-report=html
-```
-
+**tests/pytest.ini**
 Je relance les tests avec couverture :
-```bash
-python -m pytest test_selenium.py
-```
+
+    python -m pytest test_selenium.py
 
 **Sortie :**
-```
----------- coverage: platform linux, python 3.9.18 -----------
-Name                Stmts   Miss  Cover   Missing
--------------------------------------------------
-../src/script.js       15      0   100%
--------------------------------------------------
-TOTAL                  15      0   100%
-```
+6 passed in 19.50s
 
 ## 6. Exercices supplémentaires
 
 ### Test avec nombres décimaux
-J'ajoute dans `test_selenium.py` :
-```python
-def test_decimal_numbers(self, driver):
-    file_path = os.path.abspath("../src/index.html")
-    driver.get(f"file://{file_path}")
-    
-    driver.find_element(By.ID, "num1").send_keys("3.5")
-    driver.find_element(By.ID, "num2").send_keys("2.5")
-    select = Select(driver.find_element(By.ID, "operation"))
-    select.select_by_value("add")
-    driver.find_element(By.ID, "calculate").click()
-    
-    result = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "result"))
-    )
-    assert "Résultat: 6" in result.text
-```
-
-### Page Object Pattern
-**tests/calculator_page.py** :
-```python
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select, WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import os
-
-class CalculatorPage:
-    def __init__(self, driver):
-        self.driver = driver
-    
-    def load_page(self):
-        file_path = os.path.abspath("../src/index.html")
-        self.driver.get(f"file://{file_path}")
-    
-    def enter_numbers(self, num1, num2):
-        self.driver.find_element(By.ID, "num1").clear()
-        self.driver.find_element(By.ID, "num1").send_keys(str(num1))
-        self.driver.find_element(By.ID, "num2").clear()
-        self.driver.find_element(By.ID, "num2").send_keys(str(num2))
-    
-    def select_operation(self, operation):
-        select = Select(self.driver.find_element(By.ID, "operation"))
-        select.select_by_value(operation)
-    
-    def calculate(self):
-        self.driver.find_element(By.ID, "calculate").click()
-    
-    def get_result(self):
-        result = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "result"))
-        )
-        return result.text
-```
-
-Test avec Page Object :
-```python
-from calculator_page import CalculatorPage
-
-def test_with_page_object(self, driver):
-    page = CalculatorPage(driver)
-    page.load_page()
-    page.enter_numbers(10, 5)
-    page.select_operation("multiply")
-    page.calculate()
-    
-    result = page.get_result()
-    assert "Résultat: 50" in result
-```
+J'ajoute  test_decimal_numbers dans `test_selenium.py`
 
 ## 7. Commandes utiles
 
 **Lancer tous les tests :**
-```bash
-python -m pytest -v --html=report.html --self-contained-html
-```
+    python -m pytest -v --html=report.html --self-contained-html
+
 
 **Tests avec couverture :**
-```bash
-python -m pytest --cov=../src --cov-report=html
-```
+    python -m pytest --cov=../src --cov-report=html
+    sortie : 6 passed in 19.26s
 
-**Voir le rapport HTML :** Ouvrir `report.html` dans le navigateur
+
+**Voir le rapport HTML :** Ouvrir `report.html`
 
 ## 8. Réponses aux questions
 
@@ -186,13 +102,6 @@ python -m pytest --cov=../src --cov-report=html
 - **Taux de réussite** : 5/5 tests passent
 
 ## 9. Push final
-
-```bash
-git add .
-git commit -m "Complete TP with all tests"
-git push origin develop
-```
-
-Merger la PR → Déploiement automatique sur GitHub Pages ✅
-
-**Site disponible sur :** `https://[username].github.io/selenium-cicd-tp/`
+    git add .
+    git commit -m "Complete TP with all tests"
+    git push origin develop
